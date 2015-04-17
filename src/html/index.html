@@ -1,0 +1,220 @@
+<!-- @include partials/head.html -->
+<style type="text/css">
+    .crud-table {
+        display: table;
+        width: 100%
+    }
+
+    .crud-table > dl {
+        display: table-row;
+    }
+
+    .crud-table > dl > dt, .crud-table > dl > dd {
+        display: table-cell;
+    }
+
+    .crud-table .entity-options {
+        position: relative;
+    }
+
+    .crud-table .entity-options .dropdown-toggle {
+        border: none;
+        background: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .crud-table .entity-options .dropdown-menu {
+        left: auto;
+        right: 0;
+        margin: -20px 20px 0 0;
+    }
+
+    @media screen and (max-width: 300px) {
+        body {
+            background-color: lightblue;
+        }
+    }
+</style>
+
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-12">
+
+            <div class="crud-table">
+                <dl>
+                    <dt>#</dt><dt>First name</dt><dt>Last name</dt><dt>Username</dt>
+                </dl>
+                <dl>
+                    <dd>1</dd>
+                    <dd>Pieter-Jan</dd>
+                    <dd>Vennegoor of Hesselink</dd>
+                    <dd>danny.dorfel@gmail.com</dd>
+                    <dd class="entity-options">
+                        <button class="dropdown-toggle" data-target="row1options" data-event="showMenu">&hellip;</button>
+                        <ul id="row1options" class="dropdown-menu" role="menu">
+                            <li><a href="#">Action</a></li>
+                            <li><a href="#">Another action</a></li>
+                            <li><a href="#">Something else here</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#">Separated link</a></li>
+                        </ul>
+                    </dd>
+                </dl>
+            </div>
+
+            <table class="table" data-event="tableReload" data-xhr-url="json/page-1.json">
+              <caption>Optional table caption.</caption>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Username</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-event="deleteRow" data-id="1" data-xhr-method="DELETE" data-xhr-url="json/delete-row.json">
+                  <th scope="row">1</th>
+                  <td>Mark</td>
+                  <td>Otto</td>
+                  <td>@mdo</td>
+                </tr>
+                <tr data-event="deleteRow" data-xhr-method="DELETE" data-xhr-url="json/delete-row.json">
+                  <th scope="row">2</th>
+                  <td>Jacob</td>
+                  <td>Thornton</td>
+                  <td>@fat</td>
+                </tr>
+                <tr data-event="deleteRow" data-xhr-method="POST" data-xhr-url="api/endpoint.php">
+                  <th scope="row">3</th>
+                  <td>Larry</td>
+                  <td>the Bird</td>
+                  <td>@twitter</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <form action="api/endpoint.php" method="POST" id="lorem_post" enctype="multipart/form-data" typ>
+                <input type="text" name="lorem" id="lorem" value="Lorem" />
+                <input type="text" name="ipsum" id="ipsum" value="Ipsum" />
+                <input type="file" name="upload" id="file" />
+                <button type="submit">doe!</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script type="text/template" id="table_body_mustache">
+    <!-- @include templates/table_body.mustache -->
+</script>
+
+<script>
+(function(document, window) {
+    var handler = new SWP.modules.EventDispatcher(),
+        domHelper = new SWP.modules.DomHelper(),
+        xhRequest = new SWP.modules.XmlHttpRequest();
+
+    xhRequest.sf2Compatibility(true);
+
+    handler.addSubscriber('showMenu', function(event) {
+        var target, menuId, menu;
+
+        target = event.target;
+        menuId = "#" + target.getAttribute('data-target');
+        menu = document.querySelector(menuId);
+        menu.classList.add('show');
+
+        menu.addEventListener('mouseleave', function (event) {
+            this.classList.remove('show');
+            this.removeEventListener('mouseleave');
+        })
+
+        menu.addEventListener('blur', function (event) {
+            console.log(event);
+        });
+    });
+
+    handler.addSubscriber('xhrError', function(event) {
+        var message = event.data.status + ": " + event.data.statusText;
+        alert(message);
+    });
+
+    handler.addSubscriber('preDeleteRow', function(event) {
+        event.target.classList.add('pre-delete');
+    }, 10);
+
+    handler.addSubscriber('deleteRow', function(event) {
+        var target = event.target,
+            form = null,
+            formData = null,
+            xhrMethod = target.getAttribute('data-xhr-method'),
+            xhrUrl = target.getAttribute('data-xhr-url'),
+            success,
+            failed;
+
+        success = function (response) {
+
+            return this;
+            var animationEndEvent = domHelper.getTransitionEndEvent();
+            target.classList.add('deleted');
+            target.addEventListener(animationEndEvent, function () {
+                this.parentNode.removeChild(this);
+            });
+        };
+
+        failed = function (error) {
+            eventObj = new handler.EventObject('xhrError', error);
+            handler.dispatch(eveObj);
+        };
+
+        form = document.querySelector('#lorem_post');
+        xhRequest.delete({url: xhrUrl}).then(success, failed);
+    }, 100);
+
+    handler.addSubscriber('tableReload', function (event) {
+        var target = event.target,
+                xhrMethod = target.getAttribute('data-xhr-method'),
+                xhrUrl = target.getAttribute('data-xhr-url');
+
+        xhrMethod = xhrMethod ? xhrMethod : 'POST';
+
+        xhRequest.ajax({url: xhrUrl, data: formData, method: xhrMethod }).then(function (response) {
+            var data = JSON.parse(response);
+            var template = document.querySelector('#table_body_mustache').innerHTML;
+            var html = Mustache.render(template, data);
+            var tbody = document.createElement('tbody');
+            tbody.innerHTML = html.trim();
+            var ref = target.querySelector('tbody');
+            ref.parentNode.replaceChild(tbody, ref);
+        }, function (error) {
+            eventObj = new handler.EventObject('xhrError', error);
+            handler.dispatch(eventObj);
+        });
+    }, 100);
+
+    document.body.addEventListener('click', function(domEvent) {
+        var attributes,
+            eventName,
+            eventObj,
+            target = domHelper.getNearestNodeByAttribute(domEvent.target, 'data-event');
+
+        if (target == null) {
+            return;
+        }
+
+        attributes = domHelper.getNodeAttributes(target);
+        eventName = target.getAttribute('data-event');
+
+        eventObj = new handler.EventObject(eventName, attributes);
+        eventObj.target = target;
+        handler.dispatch(eventObj);
+    }, false);
+
+}(document, window));
+
+</script>
+<!-- @include partials/footer.html -->

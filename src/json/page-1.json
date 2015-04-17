@@ -1,0 +1,44 @@
+{
+    "item" : [
+        {
+            "attributes" : {
+
+            },
+            "data" : [
+                ["1", "Danny", "Dörfel", "dandor"]
+            ]
+        },
+        {
+            "attributes" : {
+
+            },
+            "data" : [
+                ["2", "Joris", "Brabants", "jorbra"]
+            ]
+        },
+        {
+            "attributes" : {
+
+            },
+            "data" : [
+                ["3", "Dirk", "Dörfel", "dandor"]
+            ]
+        },
+        {
+            "attributes" : {
+
+            },
+            "data" : [
+                ["4", "Hans", "Brabants", "jorbra"]
+            ]
+        },
+        {
+            "attributes" : {
+
+            },
+            "data" : [
+                ["5", "Mark", "Brabants", "jorbra"]
+            ]
+        }
+    ]
+}

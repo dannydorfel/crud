@@ -1,0 +1,19 @@
+.pre-delete {
+    opacity:0.5;
+    -moz-transition:opacity 0.3s;
+    -o-transition:opacity 0.3s;
+    -webkit-transition:opacity 0.3s;
+    transition:opacity 0.3s;
+}
+        
+.deleted{
+    -moz-transform:scale(0, 0);
+    -ms-transform:scale(0, 0);
+    -webkit-transform:scale(0, 0);
+    transform:scale(0, 0);
+    -moz-transition:-moz-transform 0.3s;
+    -o-transition:-o-transform 0.3s;
+    -webkit-transition:
+    -webkit-transform 0.3s;
+    transition:transform 0.3s;
+}
